@@ -41,20 +41,22 @@ export const createBlog = async (req, res) => {
 };
 
 //get blog
-
 export const getBlog = async (req, res) => {
-  const {page} = req.body;
-
-  console.log(req.body)
-  let maxLimit = 5;
+  const { page, searchValue } = req.body;
+  let maxLimit = 10;
+  let searchQuery = { draft: false };
+  if (searchValue) {
+    // searchQuery = { tags: , draft: false };
+  }
   try {
-    const blogs = await Blog.find({ draft: false })
+    const blogs = await Blog.find(searchQuery)
       .populate(
         "author",
         "personal_info.profile_img personal_info.username personal_info.fullname -_id"
       )
       .sort({ publishedAt: -1 })
-      .select("blog_id title des banner activity tags publishedAt -_id").skip((page-1) * maxLimit)
+      .select("blog_id title des banner activity tags publishedAt -_id")
+      .skip((page - 1) * maxLimit)
       .limit(maxLimit);
 
     res.status(200).json({ message: "Success", code: 200, data: blogs });
@@ -69,7 +71,7 @@ export const getBlog = async (req, res) => {
 //trending-blogs
 
 export const trendingBlogs = async (req, res) => {
-  const {page} = req.body;
+  const { page } = req.body;
   let maxLimit = 5;
   try {
     const blogs = await Blog.find({ draft: false })
@@ -99,16 +101,24 @@ export const getBogsByCategory = async (req, res) => {
   const searchQuery = { tags, draft: false };
   try {
     const blogs = await Blog.find(searchQuery)
-    .populate(
-      "author",
-      "personal_info.profile_img personal_info.username personal_info.fullname -_id"
-    )
-    .sort({ publishedAt: -1 })
-    .select("blog_id title des banner activity tags publishedAt -_id")
-    .limit(5);
+      .populate(
+        "author",
+        "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+      )
+      .sort({ publishedAt: -1 })
+      .select("blog_id title des banner activity tags publishedAt -_id")
+      .limit(5);
 
-      res.status(200).json({message:"Success", code:200, data:blogs})
+    res.status(200).json({ message: "Success", code: 200, data: blogs });
+  } catch (error) {}
+};
+
+//search blogs 
+export const searchController = async (req,res)=>{
+  const {searchValue} = req.body;
+  try {
+    const blogs = await Blog.find()
   } catch (error) {
     
   }
-};
+}

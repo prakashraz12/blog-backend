@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/create",  authenticateUser, createBlog);
 router.post("/get/blogs", getBlog);
 router.get("/get/trending/blogs",  trendingBlogs);
-router.get("/get/search/blog", getBogsByCategory)
+router.post("/get/category/blog", getBogsByCategory)
 
 
 
