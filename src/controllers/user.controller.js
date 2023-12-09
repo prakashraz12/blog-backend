@@ -57,6 +57,14 @@ export const signUp = async (req, res) => {
       fullName: user.personal_info.fullname,
       userName: user.personal_info.username,
     };
+
+    //store user in cookie that secure more
+    res.cookie("token", access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
     //response messgae
     res
       .status(201)
@@ -101,6 +109,13 @@ export const signIn = async (req, res) => {
       profile_img: findUser.personal_info.profile_img,
       username: findUser.personal_info.username,
     };
+
+    res.cookie("token", access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
     res.status(200).json({ message: "Success", code: 200, data: formatedData });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -144,6 +159,12 @@ export const googleAuth = async (req, res) => {
         username: findUser.personal_info.username,
       };
 
+      res.cookie("token", access_token, {
+        httpOnly: false,
+        secure: true,
+        sameSite: "none",
+      });
+
       //response if already have data
       return res
         .status(200)
@@ -176,6 +197,11 @@ export const googleAuth = async (req, res) => {
         username: user.personal_info.username,
       };
 
+      res.cookie("token", access_token, {
+        httpOnly: false,
+        secure: true,
+        sameSite: "none",
+      });
       //
       res
         .status(201)
