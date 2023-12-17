@@ -22,7 +22,6 @@ const blogSchema = mongoose.Schema(
     },
     content: {
       type: [],
-      // required: true
     },
     tags: {
       type: [String],
@@ -30,18 +29,26 @@ const blogSchema = mongoose.Schema(
     },
     author: {
       type: Schema.Types.ObjectId,
-      required: true,   
+      required: true,
       ref: "User",
     },
+    category:{
+      type:String,
+      required:true
+    },
     activity: {
-      total_likes: {
-        type: Number,
-        default: 0,
-      },
-      total_comments: {
-        type: Number,
-        default: 0,
-      },
+      total_likes: [
+        {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      total_comments: [
+       {
+        type:mongoose.Types.ObjectId,
+        ref:"Comment"
+       }
+      ],
       total_reads: {
         type: Number,
         default: 0,

@@ -4,13 +4,13 @@ import { uniqueIdGenerator } from "../utils/uniqueIdGenerator.utils.js";
 import User from "../models/user.model.js";
 
 export const createBlog = async (req, res) => {
-  const { title, tags, content, banner } = req.body;
+  const { title, tags, content, banner, des,category } = req.body;
   const logedInUser = req.user;
 
   try {
-    // if (!title || !tags || !content || !banner) {
-    //   return res.status(400).json({ message: "Please fill all forms." });
-    // }
+    if (!title || !tags || !content || !banner || !category) {
+      return res.status(400).json({ message: "Please fill all forms." });
+    }
 
     //make tags unifrom means all tages in loweercase.
     const uniformTags = toLowerCaseSrting(tags);
@@ -23,6 +23,8 @@ export const createBlog = async (req, res) => {
       tags: uniformTags,
       content,
       banner,
+      des,
+      category,
       author: logedInUser,
     });
 
@@ -37,17 +39,17 @@ export const createBlog = async (req, res) => {
     );
     await user.save();
     res.status(201).json({ message: "Success", code: 201, data: blogPost });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 //get blog
 export const getBlog = async (req, res) => {
-  const { page, searchValue } = req.body;
+  const { page } = req.body;
   let maxLimit = 10;
   let searchQuery = { draft: false };
-  if (searchValue) {
-    // searchQuery = { tags: , draft: false };
-  }
+
   try {
     const blogs = await Blog.find(searchQuery)
       .populate(
@@ -55,7 +57,7 @@ export const getBlog = async (req, res) => {
         "personal_info.profile_img personal_info.username personal_info.fullname -_id"
       )
       .sort({ publishedAt: -1 })
-      .select("blog_id title des banner activity tags publishedAt -_id")
+      .select("blog_id title des banner activity category tags publishedAt -_id")
       .skip((page - 1) * maxLimit)
       .limit(maxLimit);
 
@@ -97,28 +99,138 @@ export const trendingBlogs = async (req, res) => {
 };
 
 export const getBogsByCategory = async (req, res) => {
-  const { tags } = req.body;
-  const searchQuery = { tags, draft: false };
+  const { category } = req.body;
   try {
-    const blogs = await Blog.find(searchQuery)
+    const blogs = await Blog.find({category:category, draft:false})
+      .populate(
+        "author",
+        "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+      )
+      .sort({ publishedAt: -1 })
+      .select("blog_id title des banner activity category tags publishedAt -_id")
+      .limit(5);
+      if(!blogs){
+       return res.status(400).json({message:"Sorry, No Blogs Found"})
+      }
+
+    res.status(200).json({ message: "Success", code: 200, data: blogs });
+  } catch (error) {
+    res.status(500).json({message:error.message})
+  }
+};
+
+//search blogs
+export const searchController = async (req, res) => {
+  const { searchValue } = req.body;
+
+  try {
+    // Use a regular expression to perform a case-insensitive search
+    if (searchValue.length === 0) {
+      return null;
+    }
+    const regex = new RegExp(searchValue, "i");
+
+    // Search for blogs that match the search query in the 'content' field
+    const blogs = await Blog.find({ title: regex })
       .populate(
         "author",
         "personal_info.profile_img personal_info.username personal_info.fullname -_id"
       )
       .sort({ publishedAt: -1 })
       .select("blog_id title des banner activity tags publishedAt -_id")
-      .limit(5);
+      .limit(10);
+    const user = await User.find({ username: regex });
 
-    res.status(200).json({ message: "Success", code: 200, data: blogs });
-  } catch (error) {}
+    // You can customize the search based on your model fields
+
+    res.status(200).json({ success: true, data: blogs });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
 };
 
-//search blogs 
-export const searchController = async (req,res)=>{
-  const {searchValue} = req.body;
+export const getBlogById = async (req, res) => {
+  const { id } = req.params;
   try {
-    const blogs = await Blog.find()
+    if (!id) {
+      return res.status(500).json({ message: "Blogs not found" });
+    }
+    const blog = await Blog.findOne({ _id: id });
+    if (!blog) {
+      return res.status(404).json({ message: "blogs not found" });
+    }
+
+    res.status(200).json({ code: 200, data: blog });
   } catch (error) {
-    
+    res.status(500).json({ message: error.message });
   }
-}
+};
+
+export const getBlogByBlog_id = async (req, res) => {
+  const { blog_id } = req.params;
+  const incValue = 1;
+  try {
+    if (!blog_id) {
+      return res.status(500).json({ message: "Blogs not found" });
+    }
+    const blog = await Blog.findOneAndUpdate(
+      { blog_id: blog_id },
+      { $inc: { "activity.total_reads": incValue } }
+    )
+      .populate(
+        "author",
+        "personal_info.username personal_info.fullname personal_info.profile_img"
+      )
+      .select("title des content banner activity publishedAt blog_id tags");
+    if (!blog) {
+      return res.status(404).json({ message: "blogs not found" });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { "personal_info.username": blog.author.personal_info.username },
+      { $inc: { "account_info.total_reads": incValue } }
+    );
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+
+    res.status(200).json({ code: 200, data: blog });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const likeBlog = async (req, res) => {
+  const { blogId } = req.body;
+  const loggedInUser = req.user;
+
+  try {
+    const findBlog = await Blog.findOne({ _id: blogId });
+
+    if (!findBlog) {
+      return res.status(404).json({ message: "Blog Not Found" });
+    }
+
+    if (findBlog.activity && Array.isArray(findBlog.activity.total_likes)) {
+      const findIndex = findBlog.activity.total_likes.indexOf(loggedInUser);
+
+      if (findIndex !== -1) {
+        // User has already liked, so unlike
+        findBlog.activity.total_likes.splice(findIndex, 1);
+      } else {
+        // User hasn't liked, so like
+        findBlog.activity.total_likes.push(loggedInUser);
+      }
+
+      await findBlog.save();
+        res.status(200).json({ code: 200, data: findBlog.activity.total_likes });
+    } else {
+      res.status(500).json({ message: "Activity or total_likes is undefined or not an array" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+

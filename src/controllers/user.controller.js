@@ -212,4 +212,27 @@ export const googleAuth = async (req, res) => {
   }
 };
 
+export const getUserProfile = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!id) {
+      return res.status(400).json({ message: "please provide user id" });
+    }
+    const user = await User.findOne({ _id: id }).select({
+      "personal_info.password": 0,
+      google_auth: 0,
+      updatedAt: 0,
+    });
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ code: 200, data: user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 //thank you!!
