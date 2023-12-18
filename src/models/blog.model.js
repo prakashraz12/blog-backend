@@ -32,9 +32,9 @@ const blogSchema = mongoose.Schema(
       required: true,
       ref: "User",
     },
-    category:{
-      type:String,
-      required:true
+    category: {
+      type: String,
+      required: true,
     },
     activity: {
       total_likes: [
@@ -43,34 +43,24 @@ const blogSchema = mongoose.Schema(
           ref: "User",
         },
       ],
-      total_comments: [
-       {
-        type:mongoose.Types.ObjectId,
-        ref:"Comment"
-       }
-      ],
       total_reads: {
         type: Number,
         default: 0,
       },
-      total_parent_comments: {
-        type: Number,
-        default: 0,
+    },
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
       },
-    },
-    comments: {
-      type: [Schema.Types.ObjectId],
-      ref: "comments",
-    },
+    ],
     draft: {
       type: Boolean,
       default: false,
     },
   },
   {
-    timestamps: {
-      createdAt: "publishedAt",
-    },
+    timestamps:true,
   }
 );
 

@@ -11,6 +11,7 @@ const port = process.env.PORT || 4000;
 //impprt routes
 import userRouter from "./routes/user.routes.js";
 import blogRouter from "./routes/blog.routes.js";
+import commentRouter from "./routes/comment.routes.js";
 
 //app init,
 const app = express();
@@ -20,7 +21,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: "https://blog-backend-a4fo.onrender.com",
   })
 );
 app.use(express.urlencoded({ extended: true }));
@@ -35,6 +36,7 @@ admin.initializeApp({
 //
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/blog", blogRouter);
+app.use("/api/v1/blog", commentRouter);
 
 app.listen(port, () => {
   console.info("App is running on", port);
