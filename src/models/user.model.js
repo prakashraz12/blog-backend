@@ -117,7 +117,20 @@ const userSchema = mongoose.Schema(
       ref: "Blog",
       default: [],
     },
+    userActivity: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "UserActivity",
+      },
+    ],
+    notifications: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Notification",
+      },
+    ],
   },
+
   {
     timestamps: {
       createdAt: "joinedAt",

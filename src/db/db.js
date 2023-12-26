@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import express from "express";
-const app = express();
 
 export const connect_dataBase = async () => {
   try {
@@ -8,9 +6,6 @@ export const connect_dataBase = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-
-    
-
     console.info("Connected to the database");
   } catch (error) {
     console.error(`Database connection error: ${error}`);

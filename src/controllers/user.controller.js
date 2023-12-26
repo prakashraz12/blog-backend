@@ -77,7 +77,7 @@ export const signUp = async (req, res) => {
 //signin user
 
 export const signIn = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, userActivity } = req.body;
   try {
     if (!email || !password) {
       return res
@@ -234,5 +234,7 @@ export const getUserProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 //thank you!!

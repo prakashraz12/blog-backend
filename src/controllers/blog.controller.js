@@ -46,9 +46,18 @@ export const createBlog = async (req, res) => {
 
 //get blog
 export const getBlog = async (req, res) => {
-  const { page } = req.body;
-  let maxLimit = 10;
-  let searchQuery = { draft: false };
+  const { page, categories } = req.body;
+  let maxLimit = 40;
+  let searchQuery;
+
+  if (categories?.length > 0) {
+    searchQuery = {
+      draft: false,
+      category: { $in: categories },
+    };
+  } else {
+    searchQuery = { draft: false };
+  }
 
   try {
     const blogs = await Blog.find(searchQuery)
@@ -56,9 +65,9 @@ export const getBlog = async (req, res) => {
         "author",
         "personal_info.profile_img personal_info.username personal_info.fullname -_id"
       )
-      .sort({ publishedAt: -1 })
+      .sort({ createdAt: -1 })
       .select(
-        "blog_id title des banner activity category  comments tags publishedAt -_id"
+        "blog_id title des banner activity category  comments tags createdAt -_id"
       )
       .skip((page - 1) * maxLimit)
       .limit(maxLimit);
@@ -86,9 +95,9 @@ export const trendingBlogs = async (req, res) => {
       .sort({
         "activity.total_read": -1,
         "activity.total_likes": -1,
-        publishedAt: -1,
+        createdAt: -1,
       })
-      .select("blog_id title  publishedAt -_id")
+      .select("blog_id title  createdAt -_id")
       .limit(maxLimit);
 
     res.status(200).json({ message: "Success", code: 200, data: blogs });
@@ -229,11 +238,9 @@ export const likeBlog = async (req, res) => {
       await findBlog.save();
       res.status(200).json({ code: 200, data: findBlog.activity.total_likes });
     } else {
-      res
-        .status(500)
-        .json({
-          message: "Activity or total_likes is undefined or not an array",
-        });
+      res.status(500).json({
+        message: "Activity or total_likes is undefined or not an array",
+      });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
