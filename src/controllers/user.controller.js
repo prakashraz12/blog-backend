@@ -235,6 +235,18 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-
+export const updatePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.user;
+  try {
+    const findUser = await User.findOne({_id:userId});
+    if(!findUser){
+      res.status(404).json({message:"User not found"})
+    }
+    console.log(findUser)
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 //thank you!!
