@@ -28,9 +28,10 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: process.env.ORIGIN,
   })
 );
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 export const userSocketMap = new Map();
