@@ -119,7 +119,7 @@ export const getBogsByCategory = async (req, res) => {
       )
       .sort({ publishedAt: -1 })
       .select(
-        "blog_id title des banner activity category tags publishedAt -_id"
+        "blog_id title des banner activity category tags createdAt _id"
       )
       .limit(5);
     if (!blogs) {
@@ -196,7 +196,7 @@ export const getBlogByBlog_id = async (req, res) => {
         "personal_info.username personal_info.fullname personal_info.profile_img"
       )
       .select(
-        "title des content banner activity publishedAt blog_id tags comments"
+        "title des content banner category activity publishedAt blog_id tags _id comments"
       );
     if (!blog) {
       return res.status(404).json({ message: "blogs not found" });
